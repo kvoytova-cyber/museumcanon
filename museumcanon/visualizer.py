@@ -307,7 +307,7 @@ class Visualizer:
             print("Сеть пуста: нет выставок или порог min_shared слишком высокий")
             return plt.figure()
         if html:
-            return self._network_html(graph, Path(html))
+            return self._network_html(graph, Path(html), label_top)
         # на статичной картинке — только главная связная компонента, иначе мелкие «островки» сжимают её
         dropped = len(graph)
         graph = graph.subgraph(max(nx.connected_components(graph), key=len)).copy()
@@ -339,7 +339,7 @@ class Visualizer:
         fig.tight_layout()
         return self._save(fig, "network")
 
-    def _network_html(self, graph: nx.Graph, path: Path) -> Path:
+    def _network_html(self, graph: nx.Graph, path: Path, label_top: int = 12) -> Path:
         try:
             from pyvis.network import Network
         except ImportError as error:
@@ -350,31 +350,39 @@ class Visualizer:
         # и сеть выглядит статичной, без интерактивности).
         net = Network(height="720px", width="100%", bgcolor="#fcfcfb", font_color="#0b0b0b",
                       cdn_resources="in_line")
-        # Старт — та же раскладка, что и у статичного PNG, чтобы узлы не начинали
-        # из случайных точек. Физику оставляем включённой, но сильно "задемпфированной"
-        # (damping) и с маленьким timestep — вместо резкого дрожания получается
-        # медленное, плавное доведение до равновесия.
+        # Старт — та же раскладка, что и у статичного PNG. Подписи на холсте —
+        # только у label_top самых «центральных» узлов (как на PNG), у остальных
+        # имя видно только при наведении — иначе при сотне узлов надписи сливаются
+        # в нечитаемое пятно независимо от числа рёбер.
         pos = nx.kamada_kawai_layout(graph, scale=600)
+        between = nx.betweenness_centrality(graph)
+        top = set(sorted(graph, key=between.get, reverse=True)[:label_top])
         for node, d in graph.nodes(data=True):
             note = ", эмигрант" if d["emigre"] else ""
             x, y = pos[node]
-            net.add_node(node, label=d["label"], color=self.colors[d["group"]], size=6 + 2 * d["exhibitions"] ** 0.7,
+            # pyvis трактует label="" как "не задано" и сам подставляет id узла —
+            # поэтому для скрытой подписи нужен непустой, но невидимый символ.
+            net.add_node(node, label=d["label"] if node in top else "​",
+                         color=self.colors[d["group"]], size=6 + 2 * d["exhibitions"] ** 0.7,
                          title=f"{d['label']}\n{d['group']}{note}\nвыставок: {d['exhibitions']}",
                          x=float(x), y=float(y))
+        # Физика включена, но сильно задемпфирована (damping), чтобы не дрожать, и с
+        # очень низким minVelocity — иначе при слабых силах симуляция считает себя
+        # "устоявшейся" почти сразу и выглядит полностью статичной с первого кадра.
         net.set_options("""{
             "physics": {
                 "enabled": true,
                 "solver": "barnesHut",
                 "barnesHut": {
-                    "gravitationalConstant": -500,
-                    "centralGravity": 0.1,
-                    "springLength": 120,
-                    "springConstant": 0.01,
-                    "damping": 0.5,
+                    "gravitationalConstant": -2000,
+                    "centralGravity": 0.3,
+                    "springLength": 95,
+                    "springConstant": 0.02,
+                    "damping": 0.4,
                     "avoidOverlap": 0.1
                 },
-                "minVelocity": 0.75,
-                "timestep": 0.2,
+                "minVelocity": 0.05,
+                "timestep": 0.3,
                 "stabilization": {"enabled": false}
             }
         }""")
