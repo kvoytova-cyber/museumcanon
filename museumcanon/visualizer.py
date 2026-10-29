@@ -350,10 +350,16 @@ class Visualizer:
         # и сеть выглядит статичной, без интерактивности).
         net = Network(height="720px", width="100%", bgcolor="#fcfcfb", font_color="#0b0b0b",
                       cdn_resources="in_line")
+        # Позиции считаем заранее тем же алгоритмом, что и для статичного PNG, и
+        # фиксируем их (physics=False). Без этого vis-network держит узлы в вечной
+        # физической симуляции, которая на реальных данных не сходится и граф трясётся.
+        pos = nx.kamada_kawai_layout(graph, scale=600)
         for node, d in graph.nodes(data=True):
             note = ", эмигрант" if d["emigre"] else ""
+            x, y = pos[node]
             net.add_node(node, label=d["label"], color=self.colors[d["group"]], size=6 + 2 * d["exhibitions"] ** 0.7,
-                         title=f"{d['label']}\n{d['group']}{note}\nвыставок: {d['exhibitions']}")
+                         title=f"{d['label']}\n{d['group']}{note}\nвыставок: {d['exhibitions']}",
+                         x=float(x), y=float(y), physics=False)
         for a, b, w in graph.edges(data="weight"):
             net.add_edge(a, b, value=w, title=f"общих выставок: {w}", color="#bdbcb6")
         if self.out_dir and not path.is_absolute():
