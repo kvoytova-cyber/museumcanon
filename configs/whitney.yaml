@@ -1,0 +1,28 @@
+# Whitney Museum of American Art (github.com/whitneymuseum/open-access, CC0)
+# Внимание: в artists.csv нет страны рождения/национальности — группировка по
+# странам (configs/groups_russia.yaml) не сработает. В artworks.csv нет года
+# поступления — графики поступлений придут пустыми. Это нормально, просто
+# ограничение самого датасета, а не проблема кода.
+name: Whitney
+
+tables:
+  artists:
+    path: data/raw/whitney_artists.csv
+    url: https://raw.githubusercontent.com/whitneymuseum/open-access/master/artists.csv
+    fields:
+      artist_id: id
+      name: display_name
+      birth_year: {column: begin_date, parser: year}
+      death_year: {column: end_date, parser: year}
+      wikidata_id: wikidata_id
+
+  artworks:
+    path: data/raw/whitney_artworks.csv
+    url: https://raw.githubusercontent.com/whitneymuseum/open-access/master/artworks.csv
+    fields:
+      artwork_id: id
+      artist_ids: {column: artist_ids, parser: split_list}
+      title: title
+      classification: classification
+      medium: medium
+      credit_line: credit_line
