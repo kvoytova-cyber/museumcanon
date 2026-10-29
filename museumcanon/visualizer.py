@@ -350,17 +350,34 @@ class Visualizer:
         # и сеть выглядит статичной, без интерактивности).
         net = Network(height="720px", width="100%", bgcolor="#fcfcfb", font_color="#0b0b0b",
                       cdn_resources="in_line")
-        net.toggle_physics(False)   # без этого даже у "прибитых" узлов дёргаются рёбра
-        # Позиции считаем заранее тем же алгоритмом, что и для статичного PNG, и
-        # фиксируем их (physics=False). Без этого vis-network держит узлы в вечной
-        # физической симуляции, которая на реальных данных не сходится и граф трясётся.
+        # Старт — та же раскладка, что и у статичного PNG, чтобы узлы не начинали
+        # из случайных точек. Физику оставляем включённой, но сильно "задемпфированной"
+        # (damping) и с маленьким timestep — вместо резкого дрожания получается
+        # медленное, плавное доведение до равновесия.
         pos = nx.kamada_kawai_layout(graph, scale=600)
         for node, d in graph.nodes(data=True):
             note = ", эмигрант" if d["emigre"] else ""
             x, y = pos[node]
             net.add_node(node, label=d["label"], color=self.colors[d["group"]], size=6 + 2 * d["exhibitions"] ** 0.7,
                          title=f"{d['label']}\n{d['group']}{note}\nвыставок: {d['exhibitions']}",
-                         x=float(x), y=float(y), physics=False)
+                         x=float(x), y=float(y))
+        net.set_options("""{
+            "physics": {
+                "enabled": true,
+                "solver": "barnesHut",
+                "barnesHut": {
+                    "gravitationalConstant": -500,
+                    "centralGravity": 0.1,
+                    "springLength": 120,
+                    "springConstant": 0.01,
+                    "damping": 0.5,
+                    "avoidOverlap": 0.1
+                },
+                "minVelocity": 0.75,
+                "timestep": 0.2,
+                "stabilization": {"enabled": false}
+            }
+        }""")
         for a, b, w in graph.edges(data="weight"):
             # smooth=False: по умолчанию кривизна ребра считается через невидимую
             # вспомогательную точку, которая физически симулируется даже при
