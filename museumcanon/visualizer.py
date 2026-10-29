@@ -344,9 +344,12 @@ class Visualizer:
             from pyvis.network import Network
         except ImportError as error:
             raise ImportError("Для интерактивной сети: pip install pyvis") from error
-        # cdn_resources="remote": HTML открывается сам по себе, без папки lib/ рядом
+        # cdn_resources="in_line": JS/CSS встроены прямо в HTML. Нужно, чтобы файл
+        # был полностью самодостаточным — без папки lib/ рядом и без обращений к внешним
+        # CDN, которые блокируются в песочнице вывода Colab (там "remote" не грузится,
+        # и сеть выглядит статичной, без интерактивности).
         net = Network(height="720px", width="100%", bgcolor="#fcfcfb", font_color="#0b0b0b",
-                      cdn_resources="remote")
+                      cdn_resources="in_line")
         for node, d in graph.nodes(data=True):
             note = ", эмигрант" if d["emigre"] else ""
             net.add_node(node, label=d["label"], color=self.colors[d["group"]], size=6 + 2 * d["exhibitions"] ** 0.7,
