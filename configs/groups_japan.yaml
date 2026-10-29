@@ -1,0 +1,5 @@
+# Пример другой группы — тот же код, другой вопрос.
+groups:
+  - name: Япония
+    countries: [Japan]
+    nationalities: [Japanese]

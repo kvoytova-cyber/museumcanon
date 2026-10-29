@@ -1,0 +1,19 @@
+# Группы художников для анализа. Порядок важен: художник попадает в первую подходящую.
+# countries — страна рождения (после нормализации, по-английски),
+# nationalities — национальность в записи музея.
+groups:
+  - name: Россия
+    countries: [Russia, USSR]
+    nationalities: [Russian, Soviet]
+
+  - name: бывш. империя/СССР
+    countries: [Ukraine, Belarus, Georgia, Armenia, Azerbaijan, Kazakhstan, Uzbekistan,
+                Kyrgyzstan, Tajikistan, Turkmenistan, Moldova, Latvia, Lithuania, Estonia]
+    nationalities: [Ukrainian, Belarusian, Georgian, Armenian, Azerbaijani, Kazakh, Uzbek,
+                    Kyrgyz, Tajik, Turkmen, Moldovan, Latvian, Lithuanian, Estonian]
+
+  - name: Восточная Европа
+    countries: [Poland, Czechoslovakia, Czech Republic, Slovakia, Hungary, Romania, Bulgaria,
+                Yugoslavia, Serbia, Croatia, Slovenia, Bosnia and Herzegovina, North Macedonia, Albania]
+    nationalities: [Polish, Czech, Czechoslovakian, Slovak, Hungarian, Romanian, Bulgarian,
+                    Yugoslav, Serbian, Croatian, Slovenian, Bosnian, Macedonian, Albanian]

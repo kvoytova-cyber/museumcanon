@@ -1,0 +1,57 @@
+# MoMA: коллекция (github.com/MuseumofModernArt/collection) + выставки 1929–1989
+# Слева — каноническое поле museumcanon, справа — колонка в файле музея.
+name: MoMA
+
+tables:
+  artists:
+    path: data/raw/moma_artists.csv
+    url: https://media.githubusercontent.com/media/MuseumofModernArt/collection/main/Artists.csv
+    fields:
+      artist_id: ConstituentID
+      name: DisplayName
+      nationality: {column: Nationality, parser: clean_nationality}
+      birth_year: {column: BeginDate, parser: year}
+      death_year: {column: EndDate, parser: year}
+      birth_country: {column: ArtistBio, parser: born_country}
+      gender: Gender
+      wikidata_id: Wiki QID
+
+  artworks:
+    path: data/raw/moma_artworks.csv
+    url: https://media.githubusercontent.com/media/MuseumofModernArt/collection/main/Artworks.csv
+    fields:
+      artwork_id: ObjectID
+      artist_ids: {column: ConstituentID, parser: split_list}
+      title: Title
+      creation_year: {column: Date, parser: year}
+      acquisition_year: {column: DateAcquired, parser: year}
+      medium: Medium
+      classification: Classification
+      department: Department
+      credit_line: CreditLine
+
+  exhibitions:
+    path: data/raw/moma_exhibitions.csv
+    url: https://raw.githubusercontent.com/MuseumofModernArt/exhibitions/master/MoMAExhibitions1929to1989.csv
+    where:                        # берём только художников-людей, без кураторов и институций
+      ExhibitionRole: Artist
+      ConstituentType: Individual
+    fields:
+      exhibition_id: ExhibitionNumber
+      title: ExhibitionTitle
+      start_year: {column: ExhibitionBeginDate, parser: year, fallback: ExhibitionCitationDate}
+      artist_id: ConstituentID
+    artist_fields:                # чтобы выставки работали даже без файла artists
+      name: DisplayName
+      nationality: {column: Nationality, parser: clean_nationality}
+      birth_year: {column: ConstituentBeginDate, parser: year}
+      death_year: {column: ConstituentEndDate, parser: year}
+      birth_country: {column: ArtistBio, parser: born_country}
+      gender: Gender
+      wikidata_id: WikidataID
+
+cleaning:
+  drop_names_matching: "Unidentified|Unknown|Anonymous"   # безымянные «производители»
+  exclude_from_groups: []        # имена, которые не должны попадать ни в одну группу
+  overrides:                     # исходный id -> исправленные поля
+    3023: {birth_country: null}  # Max Kaufman: «born Russia», но кто это — не установлено

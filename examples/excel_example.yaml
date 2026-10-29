@@ -1,0 +1,27 @@
+# Пример «чужого» формата: Excel, два листа, русские названия колонок, годы жизни одной строкой.
+# Данные — фрагмент Tate с переименованными колонками. Код пакета не меняется — только этот маппинг.
+name: Пример (Excel)
+
+tables:
+  artists:
+    path: examples/excel_example.xlsx
+    read_options: {sheet_name: Авторы}
+    fields:
+      artist_id: Инв. код автора
+      name: Автор
+      birth_year: {column: Годы жизни, parser: year}       # '1881–1962' -> 1881
+      birth_country: {column: Место рождения, parser: last_part}
+
+  artworks:
+    path: examples/excel_example.xlsx
+    read_options: {sheet_name: Предметы}
+    fields:
+      artwork_id: Инв. №
+      artist_ids: {column: Код автора, parser: split_list}
+      title: Название
+      creation_year: {column: Датировка, parser: year}
+      acquisition_year: {column: Поступление, parser: year}
+      credit_line: Источник поступления
+
+cleaning:
+  exclude_from_groups: ["Cozens, Alexander"]   # британец, родился в России в 1717 г.

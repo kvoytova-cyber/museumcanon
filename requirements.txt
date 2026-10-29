@@ -1,0 +1,9 @@
+pandas>=2.0
+matplotlib>=3.7
+networkx>=3.0
+scipy>=1.10         # для networkx.kamada_kawai_layout в plot_network
+pyyaml>=6.0
+requests>=2.28
+openpyxl>=3.1      # для Excel
+pyvis>=0.3         # для интерактивной сети (необязательно)
+pytest>=7          # для тестов

@@ -1,0 +1,38 @@
+# Tate (github.com/tategallery/collection, снимок ~2014 г.)
+# Национальности в данных нет: группа определяется только по месту рождения.
+name: Tate
+
+tables:
+  artists:
+    path: data/raw/tate_artists.csv
+    url: https://raw.githubusercontent.com/tategallery/collection/master/artist_data.csv
+    fields:
+      artist_id: id
+      name: name
+      birth_year: {column: yearOfBirth, parser: year}
+      death_year: {column: yearOfDeath, parser: year}
+      birth_place: {column: placeOfBirth, parser: first_part}
+      birth_country: {column: placeOfBirth, parser: last_part}
+      gender: gender
+
+  artworks:
+    path: data/raw/tate_artworks.csv
+    url: https://raw.githubusercontent.com/tategallery/collection/master/artwork_data.csv
+    fields:
+      artwork_id: id
+      artist_ids: {column: artistId, parser: split_list}
+      title: title
+      creation_year: {column: year, parser: year}
+      acquisition_year: {column: acquisitionYear, parser: year}
+      medium: medium
+      credit_line: creditLine
+
+cleaning:
+  # ~39 тыс. листов наследия Тёрнера (1856) перекрывают все остальные поступления
+  drop_artists: ["Turner, Joseph Mallord William"]
+  # родились на территории нынешних России/Восточной Европы, но к теме не относятся
+  exclude_from_groups:
+    - "Cozens, Alexander"
+    - "Corinth, Lovis"
+    - "Yeames, William Frederick"
+    - "Béraud, Jean"
