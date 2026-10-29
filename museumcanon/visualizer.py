@@ -350,6 +350,7 @@ class Visualizer:
         # и сеть выглядит статичной, без интерактивности).
         net = Network(height="720px", width="100%", bgcolor="#fcfcfb", font_color="#0b0b0b",
                       cdn_resources="in_line")
+        net.toggle_physics(False)   # без этого даже у "прибитых" узлов дёргаются рёбра
         # Позиции считаем заранее тем же алгоритмом, что и для статичного PNG, и
         # фиксируем их (physics=False). Без этого vis-network держит узлы в вечной
         # физической симуляции, которая на реальных данных не сходится и граф трясётся.
@@ -361,7 +362,11 @@ class Visualizer:
                          title=f"{d['label']}\n{d['group']}{note}\nвыставок: {d['exhibitions']}",
                          x=float(x), y=float(y), physics=False)
         for a, b, w in graph.edges(data="weight"):
-            net.add_edge(a, b, value=w, title=f"общих выставок: {w}", color="#bdbcb6")
+            # smooth=False: по умолчанию кривизна ребра считается через невидимую
+            # вспомогательную точку, которая физически симулируется даже при
+            # physics=False на самих узлах — отсюда "дёргающиеся" рёбра. Прямая
+            # линия между зафиксированными узлами не нуждается в такой точке.
+            net.add_edge(a, b, value=w, title=f"общих выставок: {w}", color="#bdbcb6", smooth=False)
         if self.out_dir and not path.is_absolute():
             self.out_dir.mkdir(parents=True, exist_ok=True)
             path = self.out_dir / path
